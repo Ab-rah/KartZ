@@ -1,0 +1,37 @@
+
+services:
+  redis:
+    image: redis:alpine
+    restart: always
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn KartZ_Backend.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:SSBbHfeJXFlNRuCJhdLwfPAJRmFodmOc@trolley.proxy.rlwy.net:36256/railway
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  worker:
+    build: .
+    command: celery -A KartZ_Backend worker -l info
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:SSBbHfeJXFlNRuCJhdLwfPAJRmFodmOc@trolley.proxy.rlwy.net:36256/railway
+      - REDIS_URL=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=KartZ_Backend.settings
+    depends_on:
+      - redis
+
+# Removed local PostgreSQL service
+# volumes:
+#   postgres_data:
