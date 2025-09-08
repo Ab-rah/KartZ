@@ -123,7 +123,7 @@ SIMPLE_JWT = {
 
 
 SPECTACULAR_SETTINGS = {
-'TITLE': 'Shop API',
+'TITLE': 'KartZ API',
 'DESCRIPTION': 'Simplified e‑commerce API',
 'VERSION': '1.0.0',
 }
@@ -132,7 +132,8 @@ SPECTACULAR_SETTINGS = {
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'mbabdhulrahim@gmail.com'
 
-
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Celery/Redis
 import os
 

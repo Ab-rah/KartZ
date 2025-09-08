@@ -22,3 +22,11 @@ class ProductSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id','slug','owner','created_at','updated_at']
 
+        def get_image(self, obj):
+            request = self.context.get('request')
+            if obj.image and request:
+                return request.build_absolute_uri(obj.image.url)
+            elif obj.image:
+                return obj.image.url  # relative
+            return None
+

@@ -5,10 +5,16 @@ User = get_user_model()
 
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
+    # role = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'password', 'role')
+        fields = ('id', 'email', 'first_name', 'last_name', 'password')
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email already registered. Please use a different email.")
+        return value
 
     def create(self, validated_data):
         user = User.objects.create_user(

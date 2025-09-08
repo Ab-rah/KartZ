@@ -12,9 +12,11 @@ class Category(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        print("=== Saving Category ===")
         if not self.slug:
-            self.slug = slugify(self.name)
+            self.slug = slugify(self.name)[:140]
         super().save(*args, **kwargs)
+        print("Saved Category:", self.name)
 
     def __str__(self):
         return self.name
@@ -38,9 +40,11 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
+        print("=== Saving Product ===")
         if not self.slug:
             self.slug = slugify(self.title)[:255]
         super().save(*args, **kwargs)
+        print("Saved product:", self.title)
 
     def __str__(self):
         return self.title
