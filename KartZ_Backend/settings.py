@@ -113,6 +113,11 @@ REST_FRAMEWORK = {
 'rest_framework.filters.SearchFilter',
 'rest_framework.filters.OrderingFilter',
 ),
+'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
+    ],
 }
 
 
@@ -134,6 +139,11 @@ DEFAULT_FROM_EMAIL = 'mbabdhulrahim@gmail.com'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = FILE_UPLOAD_MAX_MEMORY_SIZE
+ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
+
 # Celery/Redis
 import os
 
