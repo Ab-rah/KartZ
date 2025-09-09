@@ -1,6 +1,8 @@
 "use client";
 import api from "@/lib/api";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useCart } from "@/contexts/CartContext"; // Import the cart context
 import {
   Search,
   Filter,
@@ -21,18 +23,15 @@ import {
   X,
   Check
 } from "lucide-react";
-import { useRouter } from "next/router"; // If you use Next.js routing
-
 
 const categories = ['all', 'Electronics', 'Gaming', 'Wearables', 'Audio'];
 
 const CustomerShopPage = () => {
-//   const router = useRouter();
+  // Use the global cart context instead of local state
+  const { cartCount, addToCart } = useCart();
 
   const [products, setProducts] = useState<any[]>([]);
   const [user, setUser] = useState<any | null>(null);
-
-  const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -41,45 +40,42 @@ const CustomerShopPage = () => {
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
-  const [showCart, setShowCart] = useState(false);
   const [showQuickView, setShowQuickView] = useState(null);
 
-useEffect(() => {
-  const fetchProducts = async () => {
-    try {
-      const res = await api.get("/catalog/products/");
-      const data = res.data.results || res.data;
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await api.get("/catalog/products/");
+        const data = res.data.results || res.data;
 
-      const normalizedProducts = data.map((p: any) => ({
-        id: p.id,
-        title: p.title,
-        slug: p.slug,
-        price: Number(p.price),
-        inStock: p.stock > 0,
-        isActive: p.is_active,
-        isFeatured: false,
-        discount: 0,
-        originalPrice: Number(p.price),
-        description: p.description || 'No description available',
-        rating: p.rating || 0,
-        reviews: p.reviews || 0,
-        image: p.image_url,
-        category: p.category_name,
-      }));
+        const normalizedProducts = data.map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          slug: p.slug,
+          price: Number(p.price),
+          inStock: p.stock > 0,
+          isActive: p.is_active,
+          isFeatured: false,
+          discount: 0,
+          originalPrice: Number(p.price),
+          description: p.description || 'No description available',
+          rating: p.rating || 0,
+          reviews: p.reviews || 0,
+          image: p.image_url,
+          category: p.category_name,
+        }));
 
-      setProducts(normalizedProducts);
-      console.log("Normalized products:", normalizedProducts);
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setProducts(normalizedProducts);
+        console.log("Normalized products:", normalizedProducts);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchProducts();
-}, []);
-
-
+    fetchProducts();
+  }, []);
 
   const handleDelete = async (id: number) => {
     try {
@@ -93,35 +89,6 @@ useEffect(() => {
     }
   };
 
-  const addToCart = (product, quantity = 1) => {
-    const existingItem = cart.find(item => item.id === product.id);
-    if (existingItem) {
-      setCart(cart.map(item =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + quantity }
-          : item
-      ));
-    } else {
-      setCart([...cart, { ...product, quantity }]);
-    }
-  };
-
-  const removeFromCart = (productId) => {
-    setCart(cart.filter(item => item.id !== productId));
-  };
-
-  const updateCartQuantity = (productId, quantity) => {
-    if (quantity === 0) {
-      removeFromCart(productId);
-    } else {
-      setCart(cart.map(item =>
-        item.id === productId
-          ? { ...item, quantity }
-          : item
-      ));
-    }
-  };
-
   const toggleWishlist = (product) => {
     if (wishlist.find(item => item.id === product.id)) {
       setWishlist(wishlist.filter(item => item.id !== product.id));
@@ -129,34 +96,13 @@ useEffect(() => {
       setWishlist([...wishlist, product]);
     }
   };
+
   const filteredProducts = products; // no filter
 
-
-//   const filteredProducts = products
-//     .filter(product =>
-//       (selectedCategory === 'all' || product.category === selectedCategory) &&
-//       product.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-//       product.price >= priceRange[0] && product.price <= priceRange[1]
-//     )
-//     .sort((a, b) => {
-//       switch(sortBy) {
-//         case 'price-low': return a.price - b.price;
-//         case 'price-high': return b.price - a.price;
-//         case 'rating': return b.rating - a.rating;
-//         case 'newest': return b.id - a.id;
-//         default: return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
-//       }
-//     });
-
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  // ... your UI rendering code here, including buttons to call handleDelete, addToCart etc.
-
-const ProductCard = ({ product }) => (
-    <div className="group bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
+  const ProductCard = ({ product }) => (
+    <div className="group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">
       {/* Product Badges */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
         {product.discount > 0 && (
           <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-3 py-1 rounded-full font-medium">
             -{product.discount}%
@@ -233,18 +179,17 @@ const ProductCard = ({ product }) => (
           <span className="text-sm text-gray-600">({product.reviews})</span>
         </div>
 
-       <h3 className="relative z-10 font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-        {product.title}
+        <h3 className="relative z-10 font-bold text-gray-900 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+          {product.title}
         </h3>
-
 
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
 
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-gray-900">${product.price}</span>
+            <span className="text-2xl font-bold text-gray-900">₹{product.price}</span>
             {product.originalPrice > product.price && (
-              <span className="text-lg text-gray-500 line-through">${product.originalPrice}</span>
+              <span className="text-lg text-gray-500 line-through">₹{product.originalPrice}</span>
             )}
           </div>
 
@@ -280,46 +225,7 @@ const ProductCard = ({ product }) => (
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                ShopHub
-              </h1>
-
-              {/* Search */}
-              <div className="relative w-96">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search for products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white/50"
-                />
-              </div>
-            </div>
-
-            {/* Cart Button */}
-            <button
-              onClick={() => setShowCart(true)}
-              className="relative bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-2xl font-medium hover:scale-105 transition-all duration-200 flex items-center gap-3"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              Cart
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 pt-4">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white">
         <div className="max-w-7xl mx-auto px-6 py-16 text-center">
@@ -347,6 +253,20 @@ const ProductCard = ({ product }) => (
       {/* Filters & Controls */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-lg p-6 border border-white/20 mb-8">
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className="relative max-w-md">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search for products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 rounded-2xl border border-gray-200/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white/50"
+              />
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-6">
             {/* Categories */}
             <div className="flex items-center gap-3">
@@ -393,6 +313,14 @@ const ProductCard = ({ product }) => (
                   <List className="w-5 h-5" />
                 </button>
               </div>
+
+              {/* Cart Items Count Display */}
+              {cartCount > 0 && (
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-2xl font-medium flex items-center gap-2">
+                  <ShoppingCart className="w-4 h-4" />
+                  {cartCount} items in cart
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -412,72 +340,6 @@ const ProductCard = ({ product }) => (
           </div>
         )}
       </div>
-
-      {/* Cart Sidebar */}
-      {showCart && (
-        <div className="fixed inset-0 z-50 flex">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowCart(false)} />
-          <div className="ml-auto w-full max-w-md bg-white shadow-2xl overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold text-gray-900">Shopping Cart ({cartCount})</h3>
-                <button onClick={() => setShowCart(false)} className="p-2 hover:bg-gray-100 rounded-lg">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              {cart.length === 0 ? (
-                <div className="text-center py-12">
-                  <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Your cart is empty</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {cart.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4 bg-gray-50 rounded-2xl p-4">
-                      <img src={item.image} alt={item.title} className="w-16 h-16 object-cover rounded-xl" />
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 line-clamp-2">{item.title}</h4>
-                        <p className="text-gray-600">${item.price}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
-                          className="p-1 hover:bg-white rounded-lg"
-                        >
-                          <Minus className="w-4 h-4" />
-                        </button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
-                        <button
-                          onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                          className="p-1 hover:bg-white rounded-lg"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {cart.length > 0 && (
-              <div className="border-t border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-lg font-semibold">Total:</span>
-                  <span className="text-2xl font-bold text-green-600">${cartTotal.toFixed(2)}</span>
-                </div>
-                <button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3">
-                  <Zap className="w-5 h-5" />
-                  Checkout Now
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Quick View Modal */}
       {showQuickView && (
@@ -518,9 +380,9 @@ const ProductCard = ({ product }) => (
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">{showQuickView.title}</h2>
 
                 <div className="flex items-baseline gap-3 mb-6">
-                  <span className="text-3xl font-bold text-green-600">${showQuickView.price}</span>
+                  <span className="text-3xl font-bold text-green-600">₹{showQuickView.price}</span>
                   {showQuickView.originalPrice > showQuickView.price && (
-                    <span className="text-xl text-gray-500 line-through">${showQuickView.originalPrice}</span>
+                    <span className="text-xl text-gray-500 line-through">₹{showQuickView.originalPrice}</span>
                   )}
                 </div>
 
@@ -529,7 +391,7 @@ const ProductCard = ({ product }) => (
                 <div className="mb-6">
                   <h3 className="font-semibold mb-3">Features:</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    {showQuickView.features.map((feature, index) => (
+                    {showQuickView.features && showQuickView.features.map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-green-500" />
                         <span className="text-sm">{feature}</span>

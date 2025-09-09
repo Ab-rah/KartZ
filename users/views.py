@@ -1,9 +1,10 @@
 from django.shortcuts import render
 
 # Create your views here.
+from rest_framework.response import Response
 from rest_framework import generics, permissions
 from .serializers import SignupSerializer
-from .serializers import AdminUserSerializer
+from .serializers import AdminUserSerializer, CurrentUserSerializer
 from django.contrib.auth import get_user_model
 from .models import User
 from drf_spectacular.utils import extend_schema
@@ -25,3 +26,10 @@ class UserManagementView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = AdminUserSerializer
     permission_classes = [permissions.IsAdminUser]
+
+class CurrentUserView(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = CurrentUserSerializer(request.user)
+        return Response(serializer.data)

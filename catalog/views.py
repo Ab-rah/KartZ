@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class ProductListCreateAPIView(generics.ListCreateAPIView):
-    queryset = Product.objects.filter(is_active=False).select_related('category', 'owner')
+    queryset = Product.objects.filter(is_active=True).select_related('category', 'owner')
     serializer_class = ProductSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # Enable file upload
