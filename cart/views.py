@@ -36,9 +36,9 @@ class CartAddItemView(APIView):
 class CartItemUpdateDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def patch(self, request, pk):
+    def patch(self, request, slug):
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        item = get_object_or_404(CartItem, pk=pk, cart=cart)
+        item = get_object_or_404(CartItem, cart=cart, product__slug=slug)
         qty = int(request.data.get('quantity', item.quantity))
         if qty <= 0:
             item.delete()
@@ -47,9 +47,9 @@ class CartItemUpdateDeleteView(APIView):
         item.save()
         return Response({'detail': 'updated'})
 
-    def delete(self, request, pk):
+    def delete(self, request, slug):
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        item = get_object_or_404(CartItem, pk=pk, cart=cart)
+        item = get_object_or_404(CartItem, cart=cart, product__slug=slug)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

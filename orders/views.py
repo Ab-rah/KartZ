@@ -80,6 +80,15 @@ class CheckoutAPIView(APIView):
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+class OrderListAPIView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        print("Fetching orders for user:", user.email)
+        orders = Order.objects.filter(user=user).order_by('-created_at')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 from django.shortcuts import render
 

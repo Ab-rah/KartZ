@@ -24,12 +24,11 @@ import {
   Check
 } from "lucide-react";
 
-const categories = ['all', 'Electronics', 'Gaming', 'Wearables', 'Audio'];
+// const categories = ['all', 'Electronics', 'Gaming', 'Wearables', 'Audio'];
 
 const CustomerShopPage = () => {
   // Use the global cart context instead of local state
   const { cartCount, addToCart } = useCart();
-
   const [products, setProducts] = useState<any[]>([]);
   const [user, setUser] = useState<any | null>(null);
   const [wishlist, setWishlist] = useState([]);
@@ -41,6 +40,7 @@ const CustomerShopPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [showQuickView, setShowQuickView] = useState(null);
+  const[categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -77,6 +77,20 @@ const CustomerShopPage = () => {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get("/catalog/categories/");
+      const categoryNames = response.data.map((cat: any) => cat.name); // Adjust depending on API response
+      setCategories(['all', ...categoryNames]);
+    } catch (error) {
+      console.error("Failed to fetch categories", error);
+    }
+  };
+
+  fetchCategories();
+}, []);
+
   const handleDelete = async (id: number) => {
     try {
       const token = localStorage.getItem("access_token");
@@ -97,7 +111,10 @@ const CustomerShopPage = () => {
     }
   };
 
-  const filteredProducts = products; // no filter
+  const filteredProducts = selectedCategory === 'all'
+  ? products
+  : products.filter((p) => p.category === selectedCategory);
+ // no filter
 
   const ProductCard = ({ product }) => (
     <div className="group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-gray-100">

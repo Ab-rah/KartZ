@@ -15,10 +15,12 @@ const ProductForm = ({ initialData = null }) => {
   });
 
   const [categories, setCategories] = useState([]);
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Fetch categories
   useEffect(() => {
-    // Fetch categories from API
     const fetchCategories = async () => {
       try {
         const response = await api.get("/catalog/categories/");
@@ -30,20 +32,35 @@ const ProductForm = ({ initialData = null }) => {
     fetchCategories();
   }, []);
 
+  // Set initial form data when available
   useEffect(() => {
     if (initialData) {
       setFormData({
-        title: initialData.title,
-        price: initialData.price,
-        stock: initialData.stock,
-        category: initialData.category,
-        description: initialData.description,
-        image: null,
-        is_active: initialData.is_active,
+        title: initialData.title || "",
+        price: initialData.price?.toString() || "",
+        stock: initialData.stock?.toString() || "",
+        // Handle category as ID or empty string if missing
+        category: initialData.category?.id || "",
+        description: initialData.description || "",
+        image: null, // new image upload starts null
+        is_active: initialData.is_active ?? true,
       });
     }
   }, [initialData]);
 
+  // Generate preview for selected image file
+  useEffect(() => {
+    if (formData.image) {
+      const objectUrl = URL.createObjectURL(formData.image);
+      setPreview(objectUrl);
+
+      return () => URL.revokeObjectURL(objectUrl);
+    } else {
+      setPreview(null);
+    }
+  }, [formData.image]);
+
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
 
@@ -56,38 +73,44 @@ const ProductForm = ({ initialData = null }) => {
     }
   };
 
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const data = new FormData();
-    data.append("title", formData.title);
-    data.append("price", formData.price);
-    data.append("stock", formData.stock);
-    data.append("category", formData.category);
-    data.append("description", formData.description);
-    data.append("is_active", formData.is_active.toString());
-
-    if (formData.image) {
-      data.append("image", formData.image);
-    }
+    setLoading(true);
 
     try {
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("price", formData.price);
+      data.append("stock", formData.stock);
+      data.append("category", formData.category);
+      data.append("description", formData.description);
+      data.append("is_active", formData.is_active.toString());
+
+      if (formData.image) {
+        data.append("image", formData.image);
+      }
+
       if (initialData) {
+        // Update product (PATCH)
         await api.patch(`/catalog/products/${initialData.slug}/`, data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         alert("Product updated successfully");
       } else {
+        // Create product (POST)
         await api.post("/catalog/products/", data, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         alert("Product created successfully");
       }
 
-      router.push("/seller/products");
+      router.push("/seller/add-product");
     } catch (err) {
       console.error("Failed to submit", err);
       alert("Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,6 +140,8 @@ const ProductForm = ({ initialData = null }) => {
           onChange={handleChange}
           className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
           required
+          min="0"
+          step="0.01"
         />
       </div>
 
@@ -162,12 +187,24 @@ const ProductForm = ({ initialData = null }) => {
           onChange={handleChange}
           className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
         />
-        {initialData?.image_url && (
+        {/* Current image */}
+        {initialData?.image_url && !preview && (
           <div className="mt-2">
             <p className="text-sm text-gray-500">Current Image:</p>
             <img
               src={initialData.image_url}
               alt="Current"
+              className="w-32 h-32 object-cover rounded border"
+            />
+          </div>
+        )}
+        {/* New image preview */}
+        {preview && (
+          <div className="mt-2">
+            <p className="text-sm text-gray-500">New Image Preview:</p>
+            <img
+              src={preview}
+              alt="Preview"
               className="w-32 h-32 object-cover rounded border"
             />
           </div>
@@ -182,6 +219,7 @@ const ProductForm = ({ initialData = null }) => {
           onChange={handleChange}
           className="w-full border border-gray-300 rounded px-3 py-2 mt-1"
           required
+          rows={4}
         />
       </div>
 
@@ -198,7 +236,8 @@ const ProductForm = ({ initialData = null }) => {
 
       <button
         type="submit"
-        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+        disabled={loading}
+        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
       >
         {initialData ? "Update Product" : "Add Product"}
       </button>

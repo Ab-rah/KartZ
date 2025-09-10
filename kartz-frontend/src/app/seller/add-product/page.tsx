@@ -36,6 +36,16 @@ const SellerProductsPage = () => {
     fetchProducts();
   }, []);
 
+  const totalProducts = products.length;
+    const inStockCount = React.useMemo(() => products.filter(p => p.stock > 0).length, [products]);
+    const outOfStockCount = React.useMemo(() => products.filter(p => p.stock === 0).length, [products]);
+    const avgPrice = React.useMemo(() => {
+      if (products.length === 0) return 0;
+      const sum = products.reduce((acc, p) => acc + (p.price || 0), 0);
+      return Math.round(sum / products.length);
+    }, [products]);
+
+
   // Delete handler
   const handleDelete = async (slug) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
@@ -166,7 +176,7 @@ const SellerProductsPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">Total Products</p>
-                <p className="text-3xl font-bold text-gray-900">{products.length}</p>
+                <p className="text-3xl font-bold text-gray-900">{totalProducts}</p>
               </div>
               <Package className="w-8 h-8 text-blue-600" />
             </div>
@@ -176,7 +186,7 @@ const SellerProductsPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">In Stock</p>
-                <p className="text-3xl font-bold text-green-600">{products.filter(p => p.stock > 0).length}</p>
+                <p className="text-3xl font-bold text-green-600">{inStockCount}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-600" />
             </div>
@@ -186,7 +196,7 @@ const SellerProductsPage = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm mb-1">Out of Stock</p>
-                <p className="text-3xl font-bold text-red-600">{products.filter(p => p.stock === 0).length}</p>
+                <p className="text-3xl font-bold text-red-600">{outOfStockCount}</p>
               </div>
               <BarChart3 className="w-8 h-8 text-red-600" />
             </div>
@@ -197,7 +207,7 @@ const SellerProductsPage = () => {
               <div>
                 <p className="text-gray-600 text-sm mb-1">Avg Price</p>
                 <p className="text-3xl font-bold text-purple-600">
-                  ₹{products.length > 0 ? Math.round(products.reduce((sum, p) => sum + p.price, 0) / products.length) : 0}
+                  ₹{avgPrice}
                 </p>
               </div>
               <DollarSign className="w-8 h-8 text-purple-600" />

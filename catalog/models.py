@@ -55,14 +55,11 @@ class Product(models.Model):
     def save(self, *args, **kwargs):
         print("=== Saving Product ===")
         if not self.slug:
-            base_slug = slugify(self.title)[:240]  # Leave room for unique suffix
-            slug = base_slug
-            counter = 1
-            # Ensure unique slug
-            while Product.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            self.slug = slug
+            words = slugify(self.title).split('-')[:3]
+            base_slug = '-'.join(words)
+            # Append a short UUID (e.g., first 8 chars of uuid4)
+            unique_suffix = uuid.uuid4().hex[:8]
+            self.slug = f"{base_slug}-{unique_suffix}"
         super().save(*args, **kwargs)
         print("Saved product:", self.title)
 
