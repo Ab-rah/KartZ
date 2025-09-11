@@ -2,13 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["localhost", "13.60.211.173"], // ✅ Allow local and EC2 image URLs
+    domains: ["localhost", "13.60.211.173"],
+  },
+  experimental: {
+    turbopack: false,
   },
   eslint: {
-    ignoreDuringBuilds: true, // ✅ Skip ESLint during build
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true, // ✅ Skip TypeScript errors during build
+    ignoreBuildErrors: true,
   },
 };
 
