@@ -37,10 +37,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
 
-  // Fetch cart from API on mount
   useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
     fetchCart();
-  }, []);
+  }
+}, []);
+
 
   // Calculate cartCount and cartTotal from cart state
   const cartCount = Array.isArray(cart)

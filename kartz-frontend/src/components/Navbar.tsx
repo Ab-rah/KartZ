@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ShoppingCart, X, Minus, Plus, Zap } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
-import { useRouter } from "next/navigation"; //
+import { useRouter } from "next/navigation";
 
 export const NavbarClient = () => {
   const { cartCount, showCart, setShowCart, cart, updateCartQuantity, cartTotal } = useCart();
@@ -19,6 +19,18 @@ export const NavbarClient = () => {
         console.error("Error parsing user data:", error);
       }
     }
+
+    // Listen for custom login event
+    const handleUserLogin = (event) => {
+      setUser(event.detail);
+    };
+
+    window.addEventListener('userLogin', handleUserLogin);
+
+    // Cleanup listener on component unmount
+    return () => {
+      window.removeEventListener('userLogin', handleUserLogin);
+    };
   }, []);
 
   const handleCheckoutClick = () => {
@@ -40,42 +52,46 @@ export const NavbarClient = () => {
             >
               Home
             </Link>
-            <Link
+            {/* Show these navigation items only when user is logged in */}
+            {user && (
+              <>
+                {/* Show Manage Products link only for staff users */}
+                {user.is_staff && (
+                  <Link
+                    href="/seller/add-product"
+                    className="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200"
+                  >
+                    Manage Products
+                  </Link>
+                )}
+
+                <button
+                  onClick={() => setShowCart(true)}
+                  className="relative px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 font-medium flex items-center gap-2"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Cart
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+                <Link
               href="/products"
               className="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200"
             >
               Products
             </Link>
 
-            {/* Show Seller Products link only for staff users */}
-            {user?.is_staff && (
-              <Link
-                href="seller/add-product"
-                className="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200"
-              >
-                Manage Products
-              </Link>
+                <Link
+                  href="/orders"
+                  className="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200"
+                >
+                  My Orders
+                </Link>
+              </>
             )}
-
-            <button
-              onClick={() => setShowCart(true)}
-              className="relative px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 font-medium flex items-center gap-2"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Cart
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-            <Link
-              href="/orders"
-              className="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200"
-            >
-              My Orders
-            </Link>
-
 
             {user ? (
               <div className="flex items-center gap-2">
@@ -115,8 +131,8 @@ export const NavbarClient = () => {
         </div>
       </header>
 
-      {/* Global Cart Sidebar */}
-      {showCart && (
+      {/* Global Cart Sidebar - Only show if user is logged in */}
+      {user && showCart && (
         <div
           className="fixed inset-0 z-50 flex"
           onClick={() => setShowCart(false)} // Close on clicking anywhere outside
@@ -189,11 +205,12 @@ export const NavbarClient = () => {
                         <span className="text-2xl font-bold text-green-600">₹{cartTotal.toFixed(2)}</span>
                       </div>
                       <button
-                  onClick={handleCheckoutClick}  // <-- add onClick here
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3">
-                  <Zap className="w-5 h-5" />
-                  Checkout Now
-                </button>
+                        onClick={handleCheckoutClick}
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white py-4 rounded-2xl font-semibold hover:scale-105 transition-all duration-200 flex items-center justify-center gap-3"
+                      >
+                        <Zap className="w-5 h-5" />
+                        Checkout Now
+                      </button>
                     </div>
                   )}
                 </>

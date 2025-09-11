@@ -37,10 +37,12 @@ export default function LoginPage() {
 
       localStorage.setItem("user", JSON.stringify(userRes.data));
 
-      // Assuming you have a setUser function or context - if not, remove this line
-      // setUser(userRes.data);
+      // Dispatch custom event to notify other components about login
+      window.dispatchEvent(new CustomEvent('userLogin', {
+        detail: userRes.data
+      }));
 
-      router.push("/"); // redirect to home
+      router.push("/products"); // redirect to home
     } catch (err: any) {
       setMessage(err.response?.data?.detail || err.message || "Invalid credentials.");
     } finally {
