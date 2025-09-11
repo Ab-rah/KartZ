@@ -1,15 +1,15 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  images: {
-    domains: ["localhost", "13.60.211.173"], // ✅ Allow local and EC2 image URLs
-  },
+module.exports = {
   eslint: {
-    ignoreDuringBuilds: true, // ✅ Skip ESLint during build
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true, // ✅ Skip TypeScript errors during build
+    ignoreBuildErrors: true,
+  },
+  reactStrictMode: true,
+  images: {
+    domains: ['localhost', '13.60.211.173'],
+  },
+  experimental: {
+    esmExternals: true,
   },
 };
-
-module.exports = nextConfig;
