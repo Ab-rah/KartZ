@@ -69,6 +69,10 @@ MIDDLEWARE = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+CORS_ALLOWED_ORIGINS = [
+    "https://kart-z-ui.vercel.app/",
+]
+
 ROOT_URLCONF = "KartZ_Backend.urls"
 
 TEMPLATES = [
